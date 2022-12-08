@@ -117,8 +117,6 @@ def construct_pid_sched_file_info_dict(pid_to_sched_file):
                         pass
             # Attach data to pid object
         pid_sched_file_info_dict[pid] = sched_data
-        print(f"{pid} : {pid_sched_file_info_dict[pid]}\n")
-        print(f"number of data points -> {len(pid_sched_file_info_dict[pid])}\n")
     
     return pid_sched_file_info_dict
 
@@ -196,21 +194,11 @@ def construct_sched_data_frame(pid_sched_file_info_dict, format_option):
         
     return sched_data_frame
 
-# pids = find_all_pids()
-# pid_sched_paths = find_pid_sched_paths(pids)
-# pid_sched_file_info_dict = construct_pid_sched_file_info_dict(pid_sched_paths)
-# sched_data_frame = construct_sched_data_frame(pid_sched_file_info_dict)
-# print(sched_data_frame)
-# print(tabulate(sched_data_frame, headers='keys', tablefmt='psql', showindex=False))
-
-# # Make output into a nice table format and write to a file for viewing
-# with open("sched_data.txt", 'w') as file:
-#     file.write(tabulate(sched_data_frame, headers='keys', tablefmt='psql', showindex=False))
-
 """
 Prints the top n PIDs with their associated sched information in a table format for ease of visualization
+Note that the inputs are command line arguments supplied by the user on calling this scripts
     
-Inputs taken from the command line arguments:
+Input:
     num_pids      -> An integer specifying the number of pids to print information for
     format_option -> A string specifying the format which column names should be displayed in. There are two possible formats...
         'short' -> Displays abbreviated sched data names
@@ -219,25 +207,14 @@ Output:
     Using the 'short' format, the output will be generated directly on the command line
     Using the 'long' format, the output will be generated to a text file called 'sched_output.txt'
 """
-def main():
-    print(sys.argv)
-    # Arguments must be of specified types
-    num_pids = int(sys.argv[1])
-    format_option = str(sys.argv[2])
-    # Argument validation
-    if num_pids <= 0:
-        print("Must display the sched information for at least one process!")
-        return
-    if not (format_option == "short" or format_option == "long"):
-        print("Must supply a format option of either 'short' or 'long'!")
-        return
+def main(num_pids, format_option):
     # Get sched info per pid available
     pids = find_all_pids()
-    if num_pids > len(pids):
-        print(f"The specified number of pids exceeds the number of pids available.\nThe total number of pids available is {len(pids)}.")
-        num_pids = len(pids)
     # Create sched_data given the pids
     pid_sched_paths = find_pid_sched_paths(pids)
+    if num_pids > len(pid_sched_paths):
+        print(f"The specified number of pids given as an input exceeds the number of pids with sched files available.\nThe total number of pids with sched files available is {len(pid_sched_paths)}.")
+        num_pids = len(pid_sched_paths)
     pid_sched_info_dict = construct_pid_sched_file_info_dict(pid_sched_paths)
     sched_data = construct_sched_data_frame(pid_sched_info_dict, format_option)
     # For the short version, also print the results to the console
@@ -255,9 +232,22 @@ if __name__ == '__main__':
     # Create new pid_sched_data file
     file = open("pid_sched_data.txt", 'w')
     file.close()
+    
+    # Arguments must be of specified types
+    num_pids = int(sys.argv[1])
+    format_option = str(sys.argv[2])
+    # Argument validation, immediately kill the progarm if neither of these conditions hold
+    if num_pids <= 0:
+        print("Must display the sched information for at least one process!")
+        sys.exit(0)
+    if not (format_option == "short" or format_option == "long"):
+        print("Must supply a format option of either 'short' or 'long'!")
+        sys.exit(0)
+    
+    # Read sched data until user kills the program
     while (True):
         try:
-            main()
+            main(num_pids, format_option)
             sleep(2.0)
         except KeyboardInterrupt:
             print("Process killed, shutting down.")
