@@ -256,7 +256,12 @@ if __name__ == '__main__':
     file = open("pid_sched_data.txt", 'w')
     file.close()
     while (True):
-        main()
-        # Delete files created by functions
-        
-        sleep(2.0)
+        try:
+            main()
+            sleep(2.0)
+        except KeyboardInterrupt:
+            print("Process killed, shutting down.")
+            os.remove("sched")
+            os.remove("top_results.txt")
+            sys.exit(1)
+            
