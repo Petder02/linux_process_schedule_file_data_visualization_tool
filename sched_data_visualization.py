@@ -118,13 +118,6 @@ def construct_pid_sched_file_info_dict(pid_to_sched_file: dict[int, str]) -> dic
         pid_sched_file_info_dict[pid] = sched_data
     
     return pid_sched_file_info_dict
-        
-                    
-                
-pids = find_all_pids()
-pid_to_sched_file = find_pid_sched_paths(pids)
-print (find_pid_sched_paths(pids))
-print(construct_pid_sched_file_info_dict(pid_to_sched_file))
 
 """
 Constructs data frame containing information found in sched
