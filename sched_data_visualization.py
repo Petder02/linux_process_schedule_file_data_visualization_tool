@@ -1,4 +1,6 @@
 import os
+import pandas as pd
+import numpy as np
 
 """ 
 Finds all the active processes on the system
@@ -35,27 +37,103 @@ def find_all_pids() -> list[str]:
                     pids.append(segments[0])
         return pids
     except Exception as e:
-        print(e)
+        e
 
 """
-Gets all the sched map paths for the pids found in top
+Constructs a dict associating a pid with its sched file
+If the pid in question does not have a sched file, it will be skipped
 
 Input:
     pids -> All the pids found in top on this run
 Output:
-    A list with all the sched paths for the pids found after reading from top
+    A dictionary mapping each pid to its sched file (if the sched file exists)
 """
-def find_pid_sched_paths(pids: list[str]) -> list[str]:
+def find_pid_sched_paths(pids: list[str]) -> dict[int, str]:
     # Change working directory to proc
-    os.chdir("/proc")
-    sched_paths = []
+    # os.chdir("/proc")
+    sched_paths = dict()
+    print(type(sched_paths) is dict)
     for pid in pids:
         try:
             sched_path = f"/proc/{pid}/sched"
             # Exclude any processes which do not have sched files
             if not os.path.exists(sched_path):
                 raise Exception(f"The sched directory with path -> {sched_path} does not exist!\nIt will be excluded from the final analysis.")
-            sched_paths.append(f"/proc/{pid}/sched")
+            # PID is guarenteed to be numeric based on input list
+            sched_paths[int(pid)] = f"/proc/{pid}/sched";
         except Exception as e:
             print(e)
+    print(type(sched_paths) is dict)
     return sched_paths
+
+"""
+Constructs a dictionary associating pids with information from their sched file
+
+Input:
+    pid_to_sched_file -> A dict mapping each pid to its sched file
+Output:
+    A dict associating pids with information from their sched file
+"""
+def construct_pid_sched_file_info_dict(pid_to_sched_file: dict[int, str]) -> dict[int, list[str]]:
+    pid_sched_file_info_dict = {}
+    line_break_char = '-'
+    # Iterate through sched files, get the necessary data
+    for pid in pid_to_sched_file.keys():
+        first_value_found = False
+        sched_file = pid_to_sched_file[pid]
+        sched_data = []
+        # Run top, but without the headers. Only want the PID's from the overall output
+        print(f"\n{sched_file}\n")
+        pid_sched_data = os.popen(f"cp {sched_file} {os.getcwd()}")
+        # Read sched file of this pid, get information
+        with open(sched_file) as sched_file_out:
+            for line in sched_file_out:
+                # IF the current line consists of all dashes, the first piece of data is on the next line
+                if not first_value_found and line.count(line_break_char) >= len(line) - 1:
+                    print("Found line break")
+                    first_value_found = True
+                    continue
+                # Once a line with all dashed lines is reached, we have found the start of the info needed
+                elif not first_value_found:
+                    continue
+                # Read all data necessary from sched file
+                else:
+                    try:
+                        line = line.strip()
+                        # Remove white space
+                        line = line.replace(" ", "")
+                        # Category is on the left, data is on the right
+                        data = line.split(":")
+                        print(data)
+                        # Two preconditions must hold:
+                        if len(data) != 2:
+                            raise Exception("Should be only two entries in the data!")
+                        if not ((type(data[1]) is float) or (type(data[1] is int))):
+                            raise Exception("Second piece of data must be numeric")
+                        # Add data to sched data
+                        sched_data.append(data[1])
+                    except Exception as e:
+                        print(e)
+            # Attach data to pid object
+        pid_sched_file_info_dict[pid] = sched_data
+    
+    return pid_sched_file_info_dict
+        
+                    
+                
+pids = find_all_pids()
+pid_to_sched_file = find_pid_sched_paths(pids)
+print (find_pid_sched_paths(pids))
+print(construct_pid_sched_file_info_dict(pid_to_sched_file))
+
+"""
+Constructs data frame containing information found in sched
+
+Input:
+    sched_paths -> The sched file paths to read data from
+Output:
+    A data frame containing sched information organized by process, across all processes
+"""
+def construct_sched_data_frame(sched_paths: list[str]):
+    #TODO: Implement after retrieving info from sched
+    return None
