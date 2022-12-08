@@ -2,6 +2,10 @@ import os
 import pandas as pd
 import numpy as np
 
+# importing the modules
+from IPython.display import HTML
+from tabulate import tabulate
+
 """ 
 Finds all the active processes on the system
 
@@ -10,7 +14,7 @@ Input:
 Output: 
     A list containing the PIDs of all processes (non-active and active) on the system
 """
-def find_all_pids() -> list[str]:
+def find_all_pids(): #-> list[str]:
     # Run top, but without the headers. Only want the PID's from the overall output
     processes = os.popen("top -b -n 1 | sed -n '/PID/,$p'|sed '/PID/d'")
     top_output = processes.read()
@@ -48,7 +52,7 @@ Input:
 Output:
     A dictionary mapping each pid to its sched file (if the sched file exists)
 """
-def find_pid_sched_paths(pids: list[str]) -> dict[int, str]:
+def find_pid_sched_paths(pids):#: list[str]) -> dict[int, str]:
     # Change working directory to proc
     # os.chdir("/proc")
     sched_paths = dict()
@@ -72,7 +76,7 @@ Input:
 Output:
     A dict associating pids with information from their sched file
 """
-def construct_pid_sched_file_info_dict(pid_to_sched_file: dict[int, str]) -> dict[int, list[str]]:
+def construct_pid_sched_file_info_dict(pid_to_sched_file):#: dict[int, str]) -> dict[int, list[str]]:
     pid_sched_file_info_dict = {}
     line_break_char = '-'
     # Iterate through sched files, get the necessary data
@@ -124,7 +128,7 @@ Input:
 Output:
     A data frame containing sched information organized by process, across all processes
 """
-def construct_sched_data_frame(pid_sched_file_info_dict: dict[str]):
+def construct_sched_data_frame(pid_sched_file_info_dict):#: dict[str]):
     # Create data frame with structure
     sched_data = {
         "se.exec_start": [],
@@ -148,11 +152,27 @@ def construct_sched_data_frame(pid_sched_file_info_dict: dict[str]):
         "prio": [],
         "clock-delta": []
     }
+    # Index dataframe by PID
     sched_data_frame = pd.DataFrame(sched_data)
-    
-    
-    
+    # Construct the dataframe row by row
+    for pid in pid_sched_file_info_dict:
+        sched_file_info = pid_sched_file_info_dict[pid]
+        # Add the row to the dataframe
+        sched_data_frame.loc[len(sched_data_frame.index)] = sched_file_info
+        
+    return sched_data_frame
+
 pids = find_all_pids()
 pid_sched_paths = find_pid_sched_paths(pids)
 pid_sched_file_info_dict = construct_pid_sched_file_info_dict(pid_sched_paths)
-construct_sched_data_frame(pid_sched_file_info_dict)
+sched_data_frame = construct_sched_data_frame(pid_sched_file_info_dict)
+# Finally convert the sched_data to an html table
+# Given how much data there is, this should be helpful in the long run
+print(tabulate(sched_data_frame, headers='keys', tablefmt='psql'))
+html = sched_data_frame.to_html()
+# Write html output to a file
+text_file = open("index.html", "w")
+text_file.write(html)
+text_file.close()
+
+HTML(sched_data_frame.to_html(classes='table table-stripped'))
