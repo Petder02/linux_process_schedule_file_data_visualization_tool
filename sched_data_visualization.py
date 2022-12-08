@@ -174,5 +174,3 @@ html = sched_data_frame.to_html()
 text_file = open("index.html", "w")
 text_file.write(html)
 text_file.close()
-
-HTML(sched_data_frame.to_html(classes='table table-stripped'))
