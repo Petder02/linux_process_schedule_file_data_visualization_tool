@@ -18,7 +18,7 @@ that information between similar processes at different time intervals on a UNIX
 
 ## Installation and Operation Instructions
 
-1. Clone this project from github into any local repository.
+1. Clone this project from GitHub into any local directory.
 2. Navigate to the directory the script is in within your directory structure and make sure Python is installed on your local system.
 3. Run the command `python3 pip install -r requirements.txt` to install the required libraries for this project.
 4. Run the command `python3 sched_data_visualization.py [num-pids] [format_option]` using a valid 'num_pids' and 'format_option' field (see main() in `sched_data_visualization.py` for more information on valid inputs.
