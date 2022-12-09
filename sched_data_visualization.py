@@ -196,7 +196,7 @@ def construct_sched_data_frame(pid_sched_file_info_dict, format_option):
 
 """
 Prints the top n PIDs with their associated sched information in a table format for ease of visualization
-Note that the inputs are command line arguments supplied by the user on calling this scripts
+Note that the inputs are command line arguments supplied by the user on calling this script
     
 Input:
     num_pids      -> An integer specifying the number of pids to print information for
