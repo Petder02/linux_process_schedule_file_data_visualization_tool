@@ -4,7 +4,7 @@
 
 ## Description
 
-This is a tool that looks at the `sched` (schedule) file for the top 'n' active processes and visualizes that per process across each of the top 'n' processes.\
+A tool that looks at the `sched` (schedule) file for the top 'n' active processes and visualizes that per process across each of the top 'n' processes.\
 Note that this tool can only be used with UNIX based operating systems at the moment (MacOS, Linux)
 
 ------
